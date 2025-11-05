@@ -1,0 +1,87 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE } from '../../consts';
+import { readFileSync, readdirSync } from 'fs';
+import path from 'path';
+
+export async function getStaticPaths() {
+	const paths = [];
+	const contentPath = 'src/content';
+	const collections = readdirSync(contentPath, { withFileTypes: true })
+		.filter(dirent => dirent.isDirectory())
+		.map(dirent => dirent.name);
+
+	for (const collection of collections) {
+		const collectionPath = path.join(contentPath, collection);
+		const files = readdirSync(collectionPath);
+		for (const file of files) {
+			paths.push({
+				params: { collection: collection, file: file },
+			});
+		}
+	}
+	return paths;
+}
+
+const { collection, file } = Astro.params;
+const filePath = path.join('src/content', collection, file);
+const content = readFileSync(filePath, 'utf-8');
+const title = file.replaceAll('-', ' ').replaceAll('_', ' ');
+---
+
+<html lang="en">
+	<head>
+		<BaseHead title={`${title} - ${SITE_TITLE}`} description="" />
+		<style>
+			main {
+				width: calc(100% - 2em);
+				max-width: 100%;
+				margin: 0;
+			}
+			.prose {
+				width: 960px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 1em;
+				color: rgb(var(--gray-dark));
+			}
+			.title {
+				margin-bottom: 1em;
+				padding: 1em 0;
+				text-align: center;
+				line-height: 1;
+			}
+			.title h1 {
+				margin: 0 0 0.5em 0;
+			}
+            .content {
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                background-color: #f6f8fa;
+                padding: 16px;
+                border-radius: 6px;
+                font-family: monospace;
+            }
+		</style>
+	</head>
+
+	<body>
+		<Header />
+		<main>
+			<article>
+				<div class="prose">
+					<div class="title">
+						<h1>{title}</h1>
+						<hr />
+					</div>
+					<div class="content">
+                        {content}
+                    </div>
+				</div>
+			</article>
+		</main>
+		<Footer />
+	</body>
+</html>

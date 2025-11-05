@@ -1,0 +1,74 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
+import { readdirSync } from 'fs';
+import path from 'path';
+
+export async function getStaticPaths() {
+	const contentPath = 'src/content';
+	const collections = readdirSync(contentPath, { withFileTypes: true })
+		.filter(dirent => dirent.isDirectory())
+		.map(dirent => dirent.name);
+
+	return collections.map(collection => {
+		return {
+			params: { collection: collection },
+		};
+	});
+}
+
+const { collection } = Astro.params;
+const collectionPath = path.join('src/content', collection);
+const files = readdirSync(collectionPath);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`${collection.charAt(0).toUpperCase() + collection.slice(1)} - ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+		<style>
+			main {
+				width: 960px;
+			}
+			ul {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 1rem;
+				list-style-type: none;
+				margin: 0;
+				padding: 0;
+			}
+			li {
+				width: calc(33% - 1rem);
+			}
+			li a {
+				display: block;
+				padding: 1rem;
+				border: 1px solid #ddd;
+				border-radius: 0.25rem;
+				text-decoration: none;
+                color: #111;
+		        font-size: 1.25rem;
+			}
+			li a:hover {
+				background-color: #f5f5f5;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>{collection.charAt(0).toUpperCase() + collection.slice(1).replace('-', ' ')}</h1>
+			<ul>
+				{files.map((file) => (
+					<li>
+						<a href={`/${collection}/${file}`}>{file.replaceAll('-', ' ').replaceAll('_', ' ')}</a>
+					</li>
+				))}
+			</ul>
+		</main>
+		<Footer />
+	</body>
+</html>
